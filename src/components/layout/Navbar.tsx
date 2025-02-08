@@ -1,7 +1,8 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, Wallet, ExternalLink } from "lucide-react";
+import { Wallet, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import Logo from "./Logo";
 
 const Navbar = () => {
   return (
@@ -9,7 +10,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <Link to="/" className="flex items-center space-x-2">
-            <ArrowUp className="h-8 w-8 text-primary" />
+            <Logo size="md" />
             <span className="text-xl font-bold text-gradient">Pawns</span>
           </Link>
           

@@ -1,8 +1,9 @@
 
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, TrendingUp, Shield, Trophy } from "lucide-react";
+import { TrendingUp, Shield, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
+import Logo from "@/components/layout/Logo";
 
 const Index = () => {
   return (
@@ -13,7 +14,7 @@ const Index = () => {
         {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-8 animate-fade-in">
-            <ArrowUp className="h-20 w-20 mx-auto text-primary" />
+            <Logo size="lg" className="mx-auto" />
             <h1 className="text-4xl sm:text-6xl font-bold">
               Play Chess. <span className="text-gradient">Earn Rewards.</span>
             </h1>
