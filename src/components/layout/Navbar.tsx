@@ -2,8 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Wallet, ExternalLink, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "@/hooks/use-mobile";
+import DailyRewardModal from "../rewards/DailyRewardModal";
 import {
   Popover,
   PopoverContent,
@@ -12,6 +14,28 @@ import {
 
 const Navbar = () => {
   const isMobile = useIsMobile();
+  const [showDailyReward, setShowDailyReward] = useState(false);
+
+  useEffect(() => {
+    const checkDailyReward = () => {
+      const lastClaim = localStorage.getItem("lastDailyReward");
+      if (!lastClaim) {
+        setShowDailyReward(true);
+        return;
+      }
+
+      const lastClaimDate = new Date(lastClaim);
+      const now = new Date();
+      const dayDiff = (now.getTime() - lastClaimDate.getTime()) / (1000 * 3600 * 24);
+
+      if (dayDiff >= 1) {
+        setShowDailyReward(true);
+      }
+    };
+
+    // Check after a short delay to avoid immediate popup
+    setTimeout(checkDailyReward, 1000);
+  }, []);
 
   return (
     <nav className="fixed top-0 w-full z-50 glassmorphism">
@@ -59,9 +83,13 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
+      <DailyRewardModal 
+        isOpen={showDailyReward} 
+        onClose={() => setShowDailyReward(false)} 
+      />
     </nav>
   );
 };
 
 export default Navbar;
-
