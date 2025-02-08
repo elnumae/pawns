@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Gift, Loader2 } from "lucide-react";
+import { getFlareRandomNumber } from "@/services/flareRNG";
 
 interface DailyRewardModalProps {
   isOpen: boolean;
@@ -19,19 +20,18 @@ const DailyRewardModal = ({ isOpen, onClose }: DailyRewardModalProps) => {
     setIsSpinning(true);
     
     try {
-      // TODO: Integrate with Flare's RNG API
-      const mockReward = Math.floor(Math.random() * 50) + 1; // Mock reward 1-50 AMB
+      // Get random reward between 1-50 AMB using Flare RNG
+      const randomReward = await getFlareRandomNumber(1, 50);
       
-      // Simulate API call
+      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      setReward(mockReward);
+      setReward(randomReward);
       toast({
         title: "Reward Claimed!",
-        description: `You received ${mockReward} AMB tokens!`,
+        description: `You received ${randomReward} AMB tokens!`,
       });
       
-      // Store last claim date in localStorage
       localStorage.setItem("lastDailyReward", new Date().toISOString());
       
     } catch (error) {

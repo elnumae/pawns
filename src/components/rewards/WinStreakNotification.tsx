@@ -13,13 +13,13 @@ const WinStreakNotification = ({ streak }: WinStreakNotificationProps) => {
   useEffect(() => {
     if (streak >= 3) {
       toast({
-        title: (
+        title: "Win Streak Activated!",
+        description: (
           <div className="flex items-center space-x-2">
             <Flame className="h-5 w-5 text-[#F97316]" />
-            <span>Win Streak: {streak} games!</span>
+            <span>You've entered the Weekly Reward Pool! Next draw in 6d 23h</span>
           </div>
         ),
-        description: "You've entered the Weekly Reward Pool! Next draw in 6d 23h",
         duration: 5000,
       });
     }
