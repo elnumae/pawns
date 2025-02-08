@@ -2,6 +2,7 @@
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, TrendingUp, Shield, Trophy } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -20,9 +21,11 @@ const Index = () => {
               Connect your wallet, link your Lichess account, and start earning AMB tokens while playing the game you love.
             </p>
             <div className="flex justify-center gap-4">
-              <Button size="lg" className="hover-effect">
-                Get Started
-              </Button>
+              <Link to="/play">
+                <Button size="lg" className="hover-effect bg-[#F97316] hover:bg-[#F97316]/90">
+                  Play Now
+                </Button>
+              </Link>
               <Button size="lg" variant="outline" className="hover-effect">
                 Learn More
               </Button>
