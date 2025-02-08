@@ -1,7 +1,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
-import { ChessPiece, TrendingUp, Shield, Trophy } from "lucide-react";
+import { ArrowUp, TrendingUp, Shield, Trophy } from "lucide-react";
 
 const Index = () => {
   return (
@@ -12,7 +12,7 @@ const Index = () => {
         {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-8 animate-fade-in">
-            <ChessPiece className="h-20 w-20 mx-auto text-primary" />
+            <ArrowUp className="h-20 w-20 mx-auto text-primary" />
             <h1 className="text-4xl sm:text-6xl font-bold">
               Play Chess. <span className="text-gradient">Earn Rewards.</span>
             </h1>

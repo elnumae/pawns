@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChessPiece, Wallet, ExternalLink } from "lucide-react";
+import { ArrowUp, Wallet, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
@@ -9,7 +9,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <Link to="/" className="flex items-center space-x-2">
-            <ChessPiece className="h-8 w-8 text-primary" />
+            <ArrowUp className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold text-gradient">Pawns</span>
           </Link>
           
