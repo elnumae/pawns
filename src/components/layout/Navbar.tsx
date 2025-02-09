@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Wallet, ExternalLink, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -37,7 +38,8 @@ const Navbar = () => {
       }
     };
 
-    setTimeout(checkDailyReward, 1000);
+    // Check on every page load
+    checkDailyReward();
   }, []);
 
   const handleLichessClick = async () => {
@@ -132,3 +134,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

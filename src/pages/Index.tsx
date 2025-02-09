@@ -1,7 +1,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Shield, Trophy } from "lucide-react";
+import { Trophy, Gamepad2, Coins } from "lucide-react";
 import { Link } from "react-router-dom";
 import Logo from "@/components/layout/Logo";
 
@@ -27,9 +27,11 @@ const Index = () => {
                   Play Now
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="hover-effect">
-                Learn More
-              </Button>
+              <Link to="/whitepaper">
+                <Button size="lg" variant="outline" className="hover-effect">
+                  Whitepaper
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
@@ -38,19 +40,19 @@ const Index = () => {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
-              icon={<Shield className="h-8 w-8" />}
-              title="Secure Staking"
-              description="Stake your AMB tokens safely and earn rewards based on your performance"
-            />
-            <FeatureCard 
-              icon={<TrendingUp className="h-8 w-8" />}
-              title="Real-time Tracking"
-              description="Monitor your games, earnings, and token balance in real-time"
-            />
-            <FeatureCard 
               icon={<Trophy className="h-8 w-8" />}
-              title="Leaderboards"
-              description="Compete with other players and climb the global rankings"
+              title="Win Games, Win Crypto"
+              description="Not a Grandmaster? No problem. Turn your chess skills into real rewards. Play, win, and earn AMB tokens every match."
+            />
+            <FeatureCard 
+              icon={<Gamepad2 className="h-8 w-8" />}
+              title="Play on Lichess, Earn More"
+              description="Connected to Lichess, the world's leading open-source chess platform. But here's the twist—you don't just gain Elo, you win crypto."
+            />
+            <FeatureCard 
+              icon={<Coins className="h-8 w-8" />}
+              title="Choose Your Bet, Multiply Your Rewards"
+              description="Set your own stakes, win daily rewards just for showing up, and boost your earnings with streak-based prizes."
             />
           </div>
         </section>
