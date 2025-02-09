@@ -7,37 +7,54 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { login, initAuth, getUserEmail } from "@/auth";
+import { createChallenge, monitorGame } from "@/services/lichess";
+import { useWallet } from "@/hooks/use-wallet";
+import { useContract } from "@/hooks/use-contract";
+import { useAuth } from "@/hooks/use-auth";
 
 const Play = () => {
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [showBettingModal, setShowBettingModal] = useState(false);
-  const [isLichessConnected, setIsLichessConnected] = useState(false);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [selectedTimeControl, setSelectedTimeControl] = useState("");
   const [betAmount, setBetAmount] = useState("10");
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [gameInProgress, setGameInProgress] = useState(false);
+  const [gameUrl, setGameUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const { address, isConnected: isWalletConnected, connect: connectWallet } = useWallet();
+  const contract = useContract();
+  const { isLichessConnected, userEmail, connect: connectLichess, initialize: initializeLichess } = useAuth();
 
   useEffect(() => {
-    async function checkAuth() {
-      const loggedIn = await initAuth();
-      if (loggedIn) {
-        const email = await getUserEmail();
-        setUserEmail(email);
-        setIsLichessConnected(true);
-        toast({
-          title: "Successfully connected to Lichess",
-          description: `Logged in as ${email}`,
-        });
-      }
+    // Initialize Lichess auth state
+    initializeLichess();
+
+    // Check if we need to resume game creation
+    const savedTimeControl = localStorage.getItem("selectedTimeControl");
+    const wasOnPlayPage = localStorage.getItem("wasOnPlayPage");
+    
+    if (savedTimeControl && wasOnPlayPage && isLichessConnected) {
+      setSelectedTimeControl(savedTimeControl);
+      localStorage.removeItem("selectedTimeControl");
+      localStorage.removeItem("wasOnPlayPage");
+      setShowBettingModal(true);
     }
-    checkAuth();
-  }, [toast]);
+
+    // Set flag that user is on play page
+    localStorage.setItem("wasOnPlayPage", "true");
+    
+    // Cleanup when leaving the page
+    return () => {
+      localStorage.removeItem("wasOnPlayPage");
+    };
+  }, [isLichessConnected, initializeLichess]);
 
   const handleTimeControlSelect = (timeControl: string) => {
     setSelectedTimeControl(timeControl);
-    if (!isLichessConnected || !isWalletConnected) {
+    if (!isLichessConnected && !isWalletConnected) {
+      setShowConnectionModal(true);
+    } else if (!isLichessConnected) {
+      handleLichessConnect();
+    } else if (!isWalletConnected) {
       setShowConnectionModal(true);
     } else {
       setShowBettingModal(true);
@@ -46,7 +63,10 @@ const Play = () => {
 
   const handleLichessConnect = async () => {
     try {
-      await login();
+      // Store the selected time control before redirecting
+      localStorage.setItem("selectedTimeControl", selectedTimeControl);
+      localStorage.setItem("wasOnPlayPage", "true");
+      await connectLichess();
     } catch (error) {
       toast({
         title: "Connection failed",
@@ -56,21 +76,83 @@ const Play = () => {
     }
   };
 
-  const handleWalletConnect = () => {
-    // TODO: Implement wallet connection
-    setIsWalletConnected(true);
-    toast({
-      title: "Wallet connected",
-      description: "Your wallet is now connected",
-    });
+  const handleWalletConnect = async () => {
+    try {
+      await connectWallet();
+      toast({
+        title: "Wallet connected",
+        description: "Your wallet is now connected",
+      });
+    } catch (error) {
+      toast({
+        title: "Connection failed",
+        description: "Failed to connect wallet. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleBetSubmit = () => {
-    toast({
-      title: "Game starting",
-      description: `Starting game with ${betAmount} AMB bet`,
-    });
-    setShowBettingModal(false);
+  const handleBetSubmit = async () => {
+    if (!isLichessConnected || !isWalletConnected) {
+      toast({
+        title: "Connection required",
+        description: "Please connect both Lichess and wallet before playing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedTimeControl) {
+      toast({
+        title: "Time control required",
+        description: "Please select a time control before creating a game",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Create Lichess challenge with the selected time control
+      const challenge = await createChallenge(selectedTimeControl);
+      setGameUrl(challenge.url);
+
+      // Create bet in smart contract
+      await contract.createGame(challenge.id, betAmount);
+
+      toast({
+        title: "Game created",
+        description: "Opening Lichess game...",
+      });
+
+      // Open the game in a new tab
+      window.open(challenge.url, "_blank");
+
+      // Monitor game for completion
+      setGameInProgress(true);
+      const result = await monitorGame(challenge.id);
+      
+      // Update smart contract with winner
+      if (result.winner) {
+        const winnerAddress = result.winner === challenge.color ? address : "OPPONENT_ADDRESS"; // You'll need to get the opponent's address
+        await contract.completeGame(challenge.id, winnerAddress);
+        
+        toast({
+          title: "Game complete",
+          description: `Winner: ${result.winner}. Funds have been transferred.`,
+        });
+      }
+
+    } catch (error) {
+      console.error("Error creating game:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create game. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGameInProgress(false);
+      setShowBettingModal(false);
+    }
   };
 
   return (
@@ -260,8 +342,31 @@ const Play = () => {
                 </div>
               </div>
 
-              <Button className="w-full" onClick={() => window.location.href = "http://localhost:3000/"}>
+              <Button className="w-full" onClick={handleBetSubmit}>
                 Start Game
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Game URL Dialog */}
+        <Dialog open={!!gameUrl} onOpenChange={() => setGameUrl(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Game Created</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p>Your game has been created! Share this URL with your opponent:</p>
+              <div className="p-4 bg-secondary rounded-lg break-all">
+                <a href={gameUrl || ""} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                  {gameUrl}
+                </a>
+              </div>
+              <Button 
+                className="w-full"
+                onClick={() => window.open(gameUrl || "", "_blank")}
+              >
+                Open Game
               </Button>
             </div>
           </DialogContent>

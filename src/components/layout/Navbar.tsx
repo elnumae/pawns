@@ -6,19 +6,19 @@ import Logo from "./Logo";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DailyRewardModal from "../rewards/DailyRewardModal";
 import { useWallet } from "@/hooks/use-wallet";
-import { login, initAuth, getUserEmail, logout } from "@/auth";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { useAuth } from "@/hooks/use-auth";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const Navbar = () => {
   const isMobile = useIsMobile();
   const [showDailyReward, setShowDailyReward] = useState(false);
-  const { isConnected, connect, disconnect, address } = useWallet();
-  const [isLichessConnected, setIsLichessConnected] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const { isConnected: isWalletConnected, connect: connectWallet, disconnect: disconnectWallet, address } = useWallet();
+  const { isLichessConnected, userEmail, connect: connectLichess, disconnect: disconnectLichess, initialize: initializeLichess } = useAuth();
+
+  useEffect(() => {
+    // Initialize Lichess auth state
+    initializeLichess();
+  }, [initializeLichess]);
 
   useEffect(() => {
     const checkDailyReward = () => {
@@ -40,33 +40,19 @@ const Navbar = () => {
     setTimeout(checkDailyReward, 1000);
   }, []);
 
-  useEffect(() => {
-    async function checkAuth() {
-      const loggedIn = await initAuth();
-      if (loggedIn) {
-        const email = await getUserEmail();
-        setUserEmail(email);
-        setIsLichessConnected(true);
-      }
-    }
-    checkAuth();
-  }, []);
-
   const handleLichessClick = async () => {
     if (isLichessConnected) {
-      await logout();
-      setIsLichessConnected(false);
-      setUserEmail(null);
+      await disconnectLichess();
     } else {
-      await login();
+      await connectLichess();
     }
   };
 
   const handleWalletClick = () => {
-    if (isConnected) {
-      disconnect();
+    if (isWalletConnected) {
+      disconnectWallet();
     } else {
-      connect();
+      connectWallet();
     }
   };
 
@@ -100,13 +86,13 @@ const Navbar = () => {
                       {isLichessConnected ? `Lichess: ${userEmail}` : 'Connect Lichess'}
                     </Button>
                     <Button 
-                      variant={isConnected ? "outline" : "default"} 
+                      variant={isWalletConnected ? "outline" : "default"} 
                       size="sm" 
                       className="hover-effect w-full"
                       onClick={handleWalletClick}
                     >
                       <Wallet className="h-4 w-4 mr-2" />
-                      {isConnected ? 'Disconnect' : 'Connect Wallet'}
+                      {isWalletConnected ? 'Disconnect' : 'Connect Wallet'}
                     </Button>
                   </div>
                 </PopoverContent>
@@ -123,13 +109,13 @@ const Navbar = () => {
                   {isLichessConnected ? `Lichess: ${userEmail}` : 'Connect Lichess'}
                 </Button>
                 <Button 
-                  variant={isConnected ? "outline" : "default"} 
+                  variant={isWalletConnected ? "outline" : "default"} 
                   size="sm" 
                   className="hover-effect"
                   onClick={handleWalletClick}
                 >
                   <Wallet className="h-4 w-4 mr-2" />
-                  {isConnected ? 'Disconnect' : 'Connect Wallet'}
+                  {isWalletConnected ? 'Disconnect' : 'Connect Wallet'}
                 </Button>
               </>
             )}
