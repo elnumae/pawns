@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Wallet, ExternalLink, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,6 +5,8 @@ import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DailyRewardModal from "../rewards/DailyRewardModal";
+import { useWallet } from "@/hooks/use-wallet";
+import { login, initAuth, getUserEmail, logout } from "@/auth";
 import {
   Popover,
   PopoverContent,
@@ -15,6 +16,9 @@ import {
 const Navbar = () => {
   const isMobile = useIsMobile();
   const [showDailyReward, setShowDailyReward] = useState(false);
+  const { isConnected, connect, disconnect, address } = useWallet();
+  const [isLichessConnected, setIsLichessConnected] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const checkDailyReward = () => {
@@ -33,9 +37,38 @@ const Navbar = () => {
       }
     };
 
-    // Check after a short delay to avoid immediate popup
     setTimeout(checkDailyReward, 1000);
   }, []);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const loggedIn = await initAuth();
+      if (loggedIn) {
+        const email = await getUserEmail();
+        setUserEmail(email);
+        setIsLichessConnected(true);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  const handleLichessClick = async () => {
+    if (isLichessConnected) {
+      await logout();
+      setIsLichessConnected(false);
+      setUserEmail(null);
+    } else {
+      await login();
+    }
+  };
+
+  const handleWalletClick = () => {
+    if (isConnected) {
+      disconnect();
+    } else {
+      connect();
+    }
+  };
 
   return (
     <nav className="fixed top-0 w-full z-50 glassmorphism">
@@ -57,26 +90,46 @@ const Navbar = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-48">
                   <div className="flex flex-col space-y-2">
-                    <Button variant="outline" size="sm" className="hover-effect w-full">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="hover-effect w-full"
+                      onClick={handleLichessClick}
+                    >
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Connect Lichess
+                      {isLichessConnected ? `Lichess: ${userEmail}` : 'Connect Lichess'}
                     </Button>
-                    <Button variant="default" size="sm" className="hover-effect w-full">
+                    <Button 
+                      variant={isConnected ? "outline" : "default"} 
+                      size="sm" 
+                      className="hover-effect w-full"
+                      onClick={handleWalletClick}
+                    >
                       <Wallet className="h-4 w-4 mr-2" />
-                      Connect Wallet
+                      {isConnected ? 'Disconnect' : 'Connect Wallet'}
                     </Button>
                   </div>
                 </PopoverContent>
               </Popover>
             ) : (
               <>
-                <Button variant="outline" size="sm" className="hover-effect">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="hover-effect"
+                  onClick={handleLichessClick}
+                >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Connect Lichess
+                  {isLichessConnected ? `Lichess: ${userEmail}` : 'Connect Lichess'}
                 </Button>
-                <Button variant="default" size="sm" className="hover-effect">
+                <Button 
+                  variant={isConnected ? "outline" : "default"} 
+                  size="sm" 
+                  className="hover-effect"
+                  onClick={handleWalletClick}
+                >
                   <Wallet className="h-4 w-4 mr-2" />
-                  Connect Wallet
+                  {isConnected ? 'Disconnect' : 'Connect Wallet'}
                 </Button>
               </>
             )}

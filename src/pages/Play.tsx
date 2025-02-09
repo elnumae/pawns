@@ -1,13 +1,13 @@
-
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import { Gamepad2, Bot, Users, Trophy, Clock, Zap, Timer, Wallet, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { login, initAuth, getUserEmail } from "@/auth";
 
 const Play = () => {
   const [showConnectionModal, setShowConnectionModal] = useState(false);
@@ -16,7 +16,24 @@ const Play = () => {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [selectedTimeControl, setSelectedTimeControl] = useState("");
   const [betAmount, setBetAmount] = useState("10");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    async function checkAuth() {
+      const loggedIn = await initAuth();
+      if (loggedIn) {
+        const email = await getUserEmail();
+        setUserEmail(email);
+        setIsLichessConnected(true);
+        toast({
+          title: "Successfully connected to Lichess",
+          description: `Logged in as ${email}`,
+        });
+      }
+    }
+    checkAuth();
+  }, [toast]);
 
   const handleTimeControlSelect = (timeControl: string) => {
     setSelectedTimeControl(timeControl);
@@ -27,13 +44,16 @@ const Play = () => {
     }
   };
 
-  const handleLichessConnect = () => {
-    // TODO: Implement Lichess connection
-    setIsLichessConnected(true);
-    toast({
-      title: "Successfully connected to Lichess",
-      description: "Your Lichess account is now linked",
-    });
+  const handleLichessConnect = async () => {
+    try {
+      await login();
+    } catch (error) {
+      toast({
+        title: "Connection failed",
+        description: "Failed to connect to Lichess. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleWalletConnect = () => {
@@ -240,7 +260,7 @@ const Play = () => {
                 </div>
               </div>
 
-              <Button className="w-full" onClick={handleBetSubmit}>
+              <Button className="w-full" onClick={() => window.location.href = "http://localhost:3000/"}>
                 Start Game
               </Button>
             </div>
