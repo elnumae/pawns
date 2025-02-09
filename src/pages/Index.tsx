@@ -27,9 +27,11 @@ const Index = () => {
                   Play Now
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="hover-effect">
-                Learn More
-              </Button>
+              <Link to="/whitepaper">
+                <Button size="lg" variant="outline" className="hover-effect">
+                  Whitepaper
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
