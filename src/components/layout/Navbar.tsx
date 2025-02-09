@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Wallet, ExternalLink, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -14,12 +13,14 @@ const Navbar = () => {
   const isMobile = useIsMobile();
   const [showDailyReward, setShowDailyReward] = useState(false);
   const { isConnected: isWalletConnected, connect: connectWallet, disconnect: disconnectWallet, address } = useWallet();
-  const { isLichessConnected, userEmail, connect: connectLichess, disconnect: disconnectLichess, initialize: initializeLichess } = useAuth();
+  const { isLichessConnected, userEmail, connect: connectLichess, disconnect: disconnectLichess, initialize: initializeLichess, isInitialized } = useAuth();
 
   useEffect(() => {
-    // Initialize Lichess auth state
-    initializeLichess();
-  }, [initializeLichess]);
+    // Initialize Lichess auth state only once
+    if (!isInitialized) {
+      initializeLichess();
+    }
+  }, [isInitialized, initializeLichess]);
 
   useEffect(() => {
     const checkDailyReward = () => {

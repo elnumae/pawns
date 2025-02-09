@@ -22,11 +22,13 @@ const Play = () => {
   const { toast } = useToast();
   const { address, isConnected: isWalletConnected, connect: connectWallet } = useWallet();
   const contract = useContract();
-  const { isLichessConnected, userEmail, connect: connectLichess, initialize: initializeLichess } = useAuth();
+  const { isLichessConnected, userEmail, connect: connectLichess, initialize: initializeLichess, isInitialized } = useAuth();
 
   useEffect(() => {
-    // Initialize Lichess auth state
-    initializeLichess();
+    // Initialize Lichess auth state only once
+    if (!isInitialized) {
+      initializeLichess();
+    }
 
     // Check if we need to resume game creation
     const savedTimeControl = localStorage.getItem("selectedTimeControl");
@@ -46,7 +48,7 @@ const Play = () => {
     return () => {
       localStorage.removeItem("wasOnPlayPage");
     };
-  }, [isLichessConnected, initializeLichess]);
+  }, [isLichessConnected, isInitialized, initializeLichess]);
 
   const handleTimeControlSelect = (timeControl: string) => {
     setSelectedTimeControl(timeControl);
